@@ -280,6 +280,9 @@ ManageTaskExecution(Task *task, TaskExecution *taskExecution,
 			placementAccessList = BuildPlacementSelectList(taskPlacement->groupId,
 														   relationShardList);
 
+			/* should at least have an entry for the anchor shard */
+			Assert(list_length(placementAccessList) > 0);
+
 			connectionId = MultiClientPlacementConnectStart(placementAccessList,
 															NULL);
 			connectionIdArray[currentIndex] = connectionId;
