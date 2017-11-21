@@ -784,7 +784,6 @@ ExtractShardId(const char *tableName)
 	}
 	shardIdString++;
 
-#ifdef HAVE_STRTOULL
 	errno = 0;
 	shardId = strtoull(shardIdString, &shardIdStringEnd, 0);
 
@@ -793,10 +792,6 @@ ExtractShardId(const char *tableName)
 		ereport(ERROR, (errmsg("could not extract shardId from table name \"%s\"",
 							   tableName)));
 	}
-#else
-	ereport(ERROR, (errmsg("could not extract shardId from table name"),
-					errhint("Your platform does not support strtoull()")));
-#endif
 
 	return shardId;
 }
