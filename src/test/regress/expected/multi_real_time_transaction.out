@@ -1,6 +1,7 @@
 SET citus.next_shard_id TO 1610000;
-ALTER SEQUENCE pg_catalog.pg_dist_jobid_seq RESTART 1610000;
-SET citus.shard_count TO 4;
+CREATE SCHEMA multi_real_time_transaction;
+SET search_path = 'multi_real_time_transaction';
+SET citus.shard_replication_factor to 1;
 CREATE TABLE test_table(id int, col_1 int, col_2 text);
 SELECT create_distributed_table('test_table','id');
  create_distributed_table 
@@ -91,7 +92,7 @@ SELECT COUNT(*) FROM test_table;
 ROLLBACK;
 -- Test with reference table (should fail)
 BEGIN;
-SELECT COUNT(*) FROM test_table INNER JOIN ref_test_table ON test_table.id = ref_test_table.id;  
+SELECT COUNT(*) FROM test_table INNER JOIN ref_test_table ON test_table.id = ref_test_table.id;
  count 
 -------
      4
@@ -99,7 +100,7 @@ SELECT COUNT(*) FROM test_table INNER JOIN ref_test_table ON test_table.id = ref
 
 INSERT INTO ref_test_table VALUES(5,6,'rr5'),(6,7,'rr6'),(7,8,'rr7');
 SELECT COUNT(*) FROM test_table INNER JOIN ref_test_table ON test_table.id = ref_test_table.id;
-ERROR:  cannot establish a new connection for placement 1681, since DML has been executed on a connection that is in use
+ERROR:  cannot establish a new connection for placement 1729, since DML has been executed on a connection that is in use
 ROLLBACK;
 -- Test with router update
 BEGIN;
@@ -142,11 +143,11 @@ SELECT SUM(col_1) FROM test_table;
   27
 (1 row)
 
-UPDATE 
-	test_table 
-SET 
-	col_1 = 4 
-WHERE 
+UPDATE
+	test_table
+SET
+	col_1 = 4
+WHERE
 	test_table.col_1 IN (SELECT co_test_table.col_1 FROM co_test_table WHERE co_test_table.id = 1)
 	AND test_table.id = 1;
 SELECT SUM(col_1) FROM test_table;
@@ -159,7 +160,6 @@ ROLLBACK;
 -- Test with partitioned table
 CREATE TABLE partitioning_test(id int, time date) PARTITION BY RANGE (time);
 SET citus.shard_replication_factor TO 1;
- 
 -- create its partitions
 CREATE TABLE partitioning_test_2009 PARTITION OF partitioning_test FOR VALUES FROM ('2009-01-01') TO ('2010-01-01');
 CREATE TABLE partitioning_test_2010 PARTITION OF partitioning_test FOR VALUES FROM ('2010-01-01') TO ('2011-01-01');
@@ -228,6 +228,21 @@ SELECT COUNT(*) FROM test_table;
 (1 row)
 
 ROLLBACK;
-DROP TABLE test_table;
-DROP TABLE co_test_table;
-DROP TABLE ref_test_table;
+-- Test with foreign key
+ALTER TABLE test_table ADD CONSTRAINT p_key_tt PRIMARY KEY (id);
+ALTER TABLE co_test_table ADD CONSTRAINT f_key_ctt FOREIGN KEY (id) REFERENCES test_table(id) ON DELETE CASCADE;
+BEGIN;
+DELETE FROM test_table where id = 1 or id = 3;
+SELECT * FROM co_test_table;
+ id | col_1 | col_2  
+----+-------+--------
+  2 |    30 | 'bb10'
+(1 row)
+
+ROLLBACK;
+DROP SCHEMA multi_real_time_transaction CASCADE;
+NOTICE:  drop cascades to 3 other objects
+DETAIL:  drop cascades to table test_table
+drop cascades to table co_test_table
+drop cascades to table ref_test_table
+RESET search_path;

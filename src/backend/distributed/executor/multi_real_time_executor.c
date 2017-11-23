@@ -371,7 +371,7 @@ ManageTaskExecution(Task *task, TaskExecution *taskExecution,
 			MultiConnection *connection = MultiClientGetConnection(connectionId);
 
 			/*
-			 * If this function was previously marked as critical (e.g. it was used
+			 * If this connection was previously marked as critical (e.g. it was used
 			 * to perform a DDL command), then throw an error. Otherwise, mark it
 			 * as failed and continue executing the query.
 			 */

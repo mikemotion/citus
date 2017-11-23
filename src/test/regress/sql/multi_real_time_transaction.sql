@@ -1,7 +1,9 @@
 SET citus.next_shard_id TO 1610000;
-ALTER SEQUENCE pg_catalog.pg_dist_jobid_seq RESTART 1610000;
 
-SET citus.shard_count TO 4;
+CREATE SCHEMA multi_real_time_transaction;
+SET search_path = 'multi_real_time_transaction';
+SET citus.shard_replication_factor to 1;
+
 CREATE TABLE test_table(id int, col_1 int, col_2 text);
 SELECT create_distributed_table('test_table','id');
 \COPY test_table FROM stdin delimiter ',';
@@ -16,9 +18,9 @@ SELECT create_distributed_table('test_table','id');
 CREATE TABLE co_test_table(id int, col_1 int, col_2 text);
 SELECT create_distributed_table('co_test_table','id');
 \COPY co_test_table FROM stdin delimiter ',';
-10,20,'aa10'
-20,30,'bb10'
-30,40,'cc10'
+1,20,'aa10'
+2,30,'bb10'
+3,40,'cc10'
 3,4,'cc1'
 3,5,'cc2'
 1,2,'cc2'
@@ -140,8 +142,17 @@ ALTER TABLE test_table ADD CONSTRAINT num_check CHECK (col_1 < 50);
 SELECT COUNT(*) FROM test_table;
 ROLLBACK;
 
-DROP TABLE test_table;
-DROP TABLE co_test_table;
-DROP TABLE ref_test_table;
+-- Test with foreign key
+ALTER TABLE test_table ADD CONSTRAINT p_key_tt PRIMARY KEY (id);
+ALTER TABLE co_test_table ADD CONSTRAINT f_key_ctt FOREIGN KEY (id) REFERENCES test_table(id) ON DELETE CASCADE;
+
+BEGIN;
+DELETE FROM test_table where id = 1 or id = 3;
+SELECT * FROM co_test_table;
+ROLLBACK;
+
+
+DROP SCHEMA multi_real_time_transaction CASCADE;
+RESET search_path;
 
 
