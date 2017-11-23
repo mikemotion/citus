@@ -28,11 +28,8 @@
 #include "distributed/multi_client_executor.h"
 #include "distributed/multi_executor.h"
 #include "distributed/multi_physical_planner.h"
-<<<<<<< HEAD
 #include "distributed/multi_resowner.h"
-=======
 #include "distributed/multi_router_executor.h"
->>>>>>> Use StartPlacementConnection in real-time executor
 #include "distributed/multi_server_executor.h"
 #include "distributed/resource_lock.h"
 #include "distributed/worker_protocol.h"
