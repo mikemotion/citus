@@ -108,6 +108,7 @@ static bool IsCitusExtensionStmt(Node *parsetree);
 /* Local functions forward declarations for Transmit statement */
 static bool IsTransmitStmt(Node *parsetree);
 static void VerifyTransmitStmt(CopyStmt *copyStatement);
+static bool IsCopyResultStmt(CopyStmt *copyStatement);
 
 /* Local functions forward declarations for processing distributed table commands */
 static Node * ProcessCopyStmt(CopyStmt *copyStatement, char *completionTag,
@@ -707,6 +708,34 @@ VerifyTransmitStmt(CopyStmt *copyStatement)
 
 
 /*
+ * IsCopyResultStmt determines whether the given copy statement is a
+ * COPY "resultkey" FROM STDIN WITH (format result) statement, which is used
+ * to copy query results from the coordinator into workers.
+ */
+static bool
+IsCopyResultStmt(CopyStmt *copyStatement)
+{
+	ListCell *optionCell = NULL;
+	bool hasFormatReceive = false;
+
+	/* extract WITH (...) options from the COPY statement */
+	foreach(optionCell, copyStatement->options)
+	{
+		DefElem *defel = (DefElem *) lfirst(optionCell);
+
+		if (strncmp(defel->defname, "format", NAMEDATALEN) == 0 &&
+			strncmp(defGetString(defel), "result", NAMEDATALEN) == 0)
+		{
+			hasFormatReceive = true;
+			break;
+		}
+	}
+
+	return hasFormatReceive;
+}
+
+
+/*
  * ProcessCopyStmt handles Citus specific concerns for COPY like supporting
  * COPYing from distributed tables and preventing unsupported actions. The
  * function returns a modified COPY statement to be executed, or NULL if no
@@ -722,6 +751,19 @@ static Node *
 ProcessCopyStmt(CopyStmt *copyStatement, char *completionTag, bool *commandMustRunAsOwner)
 {
 	*commandMustRunAsOwner = false; /* make sure variable is initialized */
+
+	/*
+	 * Handle special COPY "resultkey" FROM STDIN WITH (format result) commands
+	 * for sending intermediate results to workers.
+	 */
+	if (IsCopyResultStmt(copyStatement))
+	{
+		const char *resultKey = copyStatement->relation->relname;
+
+		ReceiveQueryResultViaCopy(resultKey);
+
+		return NULL;
+	}
 
 	/*
 	 * We check whether a distributed relation is affected. For that, we need to open the
