@@ -821,9 +821,14 @@ OpenCopyConnections(CopyStmt *copyStatement, ShardConnections *shardConnections,
 		ShardPlacement *placement = (ShardPlacement *) lfirst(placementCell);
 		char *nodeUser = CurrentUserName();
 		MultiConnection *connection = NULL;
-		uint32 connectionFlags = FOR_DML | CONNECTION_PER_PLACEMENT;
+		uint32 connectionFlags = FOR_DML;
 		StringInfo copyCommand = NULL;
 		PGresult *result = NULL;
+
+		if (placement->partitionMethod == DISTRIBUTE_BY_HASH)
+		{
+			connectionFlags |= CONNECTION_PER_PLACEMENT;
+		}
 
 		connection = GetPlacementConnection(connectionFlags, placement, nodeUser);
 

@@ -100,7 +100,7 @@ SELECT COUNT(*) FROM test_table INNER JOIN ref_test_table ON test_table.id = ref
 
 INSERT INTO ref_test_table VALUES(5,6,'rr5'),(6,7,'rr6'),(7,8,'rr7');
 SELECT COUNT(*) FROM test_table INNER JOIN ref_test_table ON test_table.id = ref_test_table.id;
-ERROR:  cannot establish a new connection for placement 1729, since DML has been executed on a connection that is in use
+ERROR:  cannot establish a new connection for placement 505, since DML has been executed on a connection that is in use
 ROLLBACK;
 -- Test with router update
 BEGIN;
@@ -226,8 +226,6 @@ SELECT COUNT(*) FROM test_table;
 (1 row)
 
 CREATE INDEX tt_ind_1 ON test_table(col_1);
-NOTICE:  using one-phase commit for distributed DDL commands
-HINT:  You can enable two-phase commit for extra safety with: SET citus.multi_shard_commit_protocol TO '2pc'
 ALTER TABLE test_table ADD CONSTRAINT num_check CHECK (col_1 < 50);
 SELECT COUNT(*) FROM test_table;
  count 

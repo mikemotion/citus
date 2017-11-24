@@ -179,7 +179,7 @@ MultiClientConnectStart(const char *nodeName, uint32 nodePort, const char *nodeD
 /*
  * MultiClientPlacementConnectStart asynchronously tries to establish a connection
  * for a particular set of shard placements. If it succeeds, it returns the
- * the connection id. Otherwise, it reports connectio error and returns
+ * the connection id. Otherwise, it reports connection error and returns
  * INVALID_CONNECTION_ID.
  */
 int32
