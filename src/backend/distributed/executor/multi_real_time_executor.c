@@ -89,6 +89,7 @@ MultiRealTimeExecute(Job *job)
 
 	workerNodeList = ActiveReadableNodeList();
 	workerHash = WorkerHash(workerHashName, workerNodeList);
+	BeginOrContinueCoordinatedTransaction();
 
 	/* initialize task execution structures for remote execution */
 	foreach(taskCell, taskList)

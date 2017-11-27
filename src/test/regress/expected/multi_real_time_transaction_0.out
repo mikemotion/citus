@@ -90,18 +90,6 @@ SELECT COUNT(*) FROM test_table;
 (1 row)
 
 ROLLBACK;
--- Test with reference table (should fail)
-BEGIN;
-SELECT COUNT(*) FROM test_table INNER JOIN ref_test_table ON test_table.id = ref_test_table.id;
- count 
--------
-     4
-(1 row)
-
-INSERT INTO ref_test_table VALUES(5,6,'rr5'),(6,7,'rr6'),(7,8,'rr7');
-SELECT COUNT(*) FROM test_table INNER JOIN ref_test_table ON test_table.id = ref_test_table.id;
-ERROR:  cannot establish a new connection for placement 505, since DML has been executed on a connection that is in use
-ROLLBACK;
 -- Test with router update
 BEGIN;
 SELECT SUM(col_1) FROM test_table;
@@ -251,4 +239,3 @@ NOTICE:  drop cascades to 3 other objects
 DETAIL:  drop cascades to table test_table
 drop cascades to table co_test_table
 drop cascades to table ref_test_table
-RESET search_path;

@@ -789,11 +789,17 @@ ConnectionAccessedDifferentPlacement(MultiConnection *connection,
 		ConnectionReference *connectionReference =
 			dlist_container(ConnectionReference, connectionNode, placementIter.cur);
 
-		if ((placement->partitionMethod != DISTRIBUTE_BY_HASH &&
-			 placement->placementId != connectionReference->placementId) ||
-			(placement->colocationGroupId != INVALID_COLOCATION_ID &&
-			 placement->colocationGroupId == connectionReference->colocationGroupId &&
-			 placement->representativeValue != connectionReference->representativeValue))
+		/* handle append and range distributed tables */
+		if (placement->partitionMethod != DISTRIBUTE_BY_HASH &&
+			placement->placementId != connectionReference->placementId)
+		{
+			return true;
+		}
+
+		/* handle hash distributed tables */
+		if (placement->colocationGroupId != INVALID_COLOCATION_ID &&
+			placement->colocationGroupId == connectionReference->colocationGroupId &&
+			placement->representativeValue != connectionReference->representativeValue)
 		{
 			/* non-co-located placements from the same co-location group */
 			return true;

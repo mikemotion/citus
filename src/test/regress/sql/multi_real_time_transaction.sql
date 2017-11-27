@@ -68,13 +68,6 @@ SELECT COUNT(*) FROM test_table;
 SELECT COUNT(*) FROM test_table;
 ROLLBACK;
 
--- Test with reference table (should fail)
-BEGIN;
-SELECT COUNT(*) FROM test_table INNER JOIN ref_test_table ON test_table.id = ref_test_table.id;
-INSERT INTO ref_test_table VALUES(5,6,'rr5'),(6,7,'rr6'),(7,8,'rr7');
-SELECT COUNT(*) FROM test_table INNER JOIN ref_test_table ON test_table.id = ref_test_table.id;
-ROLLBACK;
-
 -- Test with router update
 BEGIN;
 SELECT SUM(col_1) FROM test_table;
@@ -151,8 +144,4 @@ DELETE FROM test_table where id = 1 or id = 3;
 SELECT * FROM co_test_table;
 ROLLBACK;
 
-
 DROP SCHEMA multi_real_time_transaction CASCADE;
-RESET search_path;
-
-

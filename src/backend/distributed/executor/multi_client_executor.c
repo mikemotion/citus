@@ -323,7 +323,14 @@ MultiClientReleaseConnection(int32 connectionId)
 	connection = ClientConnectionArray[connectionId];
 	Assert(connection != NULL);
 
-	UnclaimConnection(connection);
+	if (!InCoordinatedTransaction())
+	{
+		MultiClientDisconnect(connectionId);
+	}
+	else
+	{
+		UnclaimConnection(connection);
+	}
 
 	ClientConnectionArray[connectionId] = NULL;
 	ClientPollingStatusArray[connectionId] = InvalidPollingStatus;
