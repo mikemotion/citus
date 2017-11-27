@@ -651,7 +651,8 @@ BuildPlacementSelectList(uint32 groupId, List *relationShardList)
 		placement = FindShardPlacementOnGroup(groupId, relationShard->shardId);
 		if (placement == NULL)
 		{
-			ereport(ERROR, (errmsg("no active placement of shard %ld found on group %d",
+			ereport(ERROR, (errmsg("no active placement of shard " UINT64_FORMAT
+								   " found on group %u",
 								   relationShard->shardId, groupId)));
 		}
 

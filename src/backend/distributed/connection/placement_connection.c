@@ -507,10 +507,9 @@ FindPlacementListConnection(int flags, List *placementAccessList, const char *us
 
 			ereport(ERROR,
 					(errcode(ERRCODE_ACTIVE_SQL_TRANSACTION),
-					 errmsg(
-						 "cannot perform DDL on placement %ld, which has been read over "
-						 "multiple connections",
-						 placement->placementId)));
+					 errmsg("cannot perform DDL on placement " UINT64_FORMAT
+							", which has been read over multiple connections",
+							placement->placementId)));
 		}
 		else if (accessType == PLACEMENT_ACCESS_DDL && colocatedEntry != NULL &&
 				 colocatedEntry->hasSecondaryConnections)
@@ -526,8 +525,8 @@ FindPlacementListConnection(int flags, List *placementAccessList, const char *us
 
 			ereport(ERROR,
 					(errcode(ERRCODE_ACTIVE_SQL_TRANSACTION),
-					 errmsg("cannot perform DDL on placement %ld since a co-located "
-							"placement has been read over multiple connections",
+					 errmsg("cannot perform DDL on placement " UINT64_FORMAT
+							" since a co-located placement has been read over multiple connections",
 							placement->placementId)));
 		}
 		else if (foundModifyingConnection)
@@ -580,9 +579,10 @@ FindPlacementListConnection(int flags, List *placementAccessList, const char *us
 
 			ereport(ERROR,
 					(errcode(ERRCODE_ACTIVE_SQL_TRANSACTION),
-					 errmsg("cannot establish a new connection for placement %ld, since "
-							"DDL has been executed on a connection that is in use",
-							placement->placementId)));
+					 errmsg(
+						 "cannot establish a new connection for placement " UINT64_FORMAT
+						 ", since DDL has been executed on a connection that is in use",
+						 placement->placementId)));
 		}
 		else if (placementConnection->hadDML)
 		{
@@ -602,9 +602,10 @@ FindPlacementListConnection(int flags, List *placementAccessList, const char *us
 
 			ereport(ERROR,
 					(errcode(ERRCODE_ACTIVE_SQL_TRANSACTION),
-					 errmsg("cannot establish a new connection for placement %ld, since "
-							"DML has been executed on a connection that is in use",
-							placement->placementId)));
+					 errmsg(
+						 "cannot establish a new connection for placement " UINT64_FORMAT
+						 ", since DML has been executed on a connection that is in use",
+						 placement->placementId)));
 		}
 		else if (accessType == PLACEMENT_ACCESS_DDL)
 		{
