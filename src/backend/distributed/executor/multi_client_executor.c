@@ -307,7 +307,8 @@ MultiClientDisconnect(int32 connectionId)
 
 /*
  * MultiClientReleaseConnection removes a connection from the client
- * executor pool without disconnecting.
+ * executor pool without disconnecting if it is run in the transaction
+ * otherwise it disconnects.
  *
  * This allows the connection to be used for other operations in the
  * same transaction. The connection will still be closed at COMMIT
@@ -323,6 +324,7 @@ MultiClientReleaseConnection(int32 connectionId)
 	connection = ClientConnectionArray[connectionId];
 	Assert(connection != NULL);
 
+	/* allow using same connection only in the same transaction */
 	if (!InCoordinatedTransaction())
 	{
 		MultiClientDisconnect(connectionId);
